@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MDS — Marketing · Development · Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a08;
+      --deep: #111109;
+      --gold: #c9a84c;
+      --gold-light: #e8c96a;
+      --gold-pale: #f5e4b0;
+      --gold-dim: #8a6f2e;
+      --white: #faf6ee;
+      --text: #d4c49a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      position: fixed; top: 0; left: 0;
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s ease;
+      mix-blend-mode: screen;
+    }
+    .cursor-ring {
+      position: fixed; top: 0; left: 0;
+      width: 32px; height: 32px;
+      border: 1px solid rgba(201,168,76,0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.18s ease, width 0.2s, height 0.2s, border-color 0.2s;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 28px 60px;
+      z-index: 100;
+      background: linear-gradient(to bottom, rgba(10,10,8,0.95), transparent);
+    }
+    .nav-logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.35em;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex; gap: 48px; list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.3s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0; right: 0;
+      height: 1px;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+    .nav-links a:hover { color: var(--gold-light); }
+    .nav-links a:hover::after { transform: scaleX(1); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      text-align: center;
+      padding: 120px 40px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background radial glow */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Decorative lines */
+    .hero-line {
+      position: absolute;
+      background: linear-gradient(to right, transparent, rgba(201,168,76,0.2), transparent);
+      height: 1px;
+      width: 100%;
+    }
+    .hero-line:first-of-type { top: 140px; }
+    .hero-line:last-of-type { bottom: 100px; }
+
+    .hero-eyebrow {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fadeUp 1s 0.3s forwards;
+    }
+
+    .hero-logo-img {
+      width: 130px;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp 1s 0.5s forwards;
+      filter: drop-shadow(0 0 30px rgba(201,168,76,0.3));
+    }
+
+    .hero-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(4rem, 10vw, 9rem);
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold-light) 40%, var(--gold) 60%, var(--gold-pale) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      animation: fadeUp 1.2s 0.7s forwards;
+      margin-bottom: 24px;
+    }
+
+    .hero-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      font-weight: 300;
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
+      animation: fadeUp 1s 1s forwards;
+      margin-bottom: 16px;
+    }
+
+    .hero-divider {
+      display: flex; align-items: center; gap: 18px;
+      margin: 36px auto 56px;
+      opacity: 0;
+      animation: fadeUp 1s 1.2s forwards;
+    }
+    .hero-divider span {
+      display: inline-block;
+      width: 60px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold));
+    }
+    .hero-divider span:last-child {
+      background: linear-gradient(to left, transparent, var(--gold));
+    }
+    .hero-divider-icon {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      transform: rotate(45deg);
+    }
+
+    .hero-tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text);
+      max-width: 520px;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 1s 1.4s forwards;
+      margin-bottom: 64px;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      padding: 16px 52px;
+      border: 1px solid var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      color: var(--gold);
+      text-decoration: none;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.4s;
+      opacity: 0;
+      animation: fadeUp 1s 1.6s forwards;
+    }
+    .hero-cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: translateX(-101%);
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .hero-cta:hover { color: var(--black); }
+    .hero-cta:hover::before { transform: translateX(0); }
+    .hero-cta span { position: relative; z-index: 1; }
+
+    /* SERVICES */
+    .services {
+      padding: 140px 60px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 90px;
+    }
+    .section-tag {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      display: block;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--gold-pale);
+      margin-bottom: 20px;
+    }
+    .section-rule {
+      width: 80px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      margin: 0 auto;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .service-card {
+      padding: 60px 44px;
+      border: 1px solid rgba(201,168,76,0.12);
+      background: rgba(201,168,76,0.015);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.4s, background 0.4s;
+      cursor: none;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      transform: scaleX(0);
+      transition: transform 0.5s ease;
+    }
+    .service-card:hover { border-color: rgba(201,168,76,0.35); background: rgba(201,168,76,0.04); }
+    .service-card:hover::before { transform: scaleX(1); }
+
+    .service-number {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--gold-dim);
+      margin-bottom: 28px;
+      display: block;
+    }
+    .service-icon {
+      width: 48px; height: 48px;
+      margin-bottom: 28px;
+      color: var(--gold);
+    }
+    .service-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.15em;
+      color: var(--gold-pale);
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+    .service-desc {
+      font-size: 0.82rem;
+      line-height: 1.9;
+      color: rgba(212,196,154,0.7);
+      font-weight: 300;
+    }
+
+    .service-items {
+      list-style: none;
+      margin-top: 28px;
+    }
+    .service-items li {
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--gold-dim);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .service-items li::before {
+      content: '◆';
+      font-size: 0.4rem;
+      color: var(--gold);
+    }
+
+    /* WHY US */
+    .why {
+      padding: 120px 60px;
+      background: linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 50%);
+      border-top: 1px solid rgba(201,168,76,0.1);
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .why-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center;
+    }
+    .why-left {}
+    .why-left .section-header { text-align: left; }
+    .why-left .section-rule { margin: 0; }
+    .why-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      line-height: 1.8;
+      color: rgba(212,196,154,0.8);
+      margin-top: 36px;
+      font-weight: 300;
+    }
+
+    .why-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+    }
+    .stat-box {
+      padding: 40px 36px;
+      border: 1px solid rgba(201,168,76,0.14);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.4s;
+    }
+    .stat-box:hover { background: rgba(201,168,76,0.04); }
+    .stat-number {
+      font-family: 'Cinzel', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      display: block;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+    }
+
+    /* CONTACT */
+    .contact {
+      padding: 140px 60px;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .contact-desc {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      line-height: 1.8;
+      color: rgba(212,196,154,0.75);
+      margin: 36px 0 60px;
+      font-style: italic;
+    }
+    .contact-links {
+      display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
+    }
+    .contact-btn {
+      display: inline-block;
+      padding: 16px 48px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.4s;
+      position: relative; overflow: hidden;
+      cursor: none;
+    }
+    .contact-btn-primary {
+      background: var(--gold);
+      color: var(--black);
+      border: 1px solid var(--gold);
+    }
+    .contact-btn-primary:hover {
+      background: var(--gold-light);
+      box-shadow: 0 0 40px rgba(201,168,76,0.3);
+    }
+    .contact-btn-secondary {
+      border: 1px solid rgba(201,168,76,0.5);
+      color: var(--gold);
+    }
+    .contact-btn-secondary:hover {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.06);
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(201,168,76,0.12);
+      padding: 48px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-logo {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.35em;
+      color: var(--gold);
+    }
+    .footer-copy {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--gold-dim);
+    }
+    .footer-links { display: flex; gap: 32px; list-style: none; }
+    .footer-links a {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      nav { padding: 24px 28px; }
+      .nav-links { gap: 28px; }
+      .services { padding: 80px 28px; }
+      .services-grid { grid-template-columns: 1fr; gap: 2px; }
+      .why-inner { grid-template-columns: 1fr; gap: 60px; }
+      .why { padding: 80px 28px; }
+      .contact { padding: 80px 28px; }
+      footer { flex-direction: column; gap: 24px; text-align: center; padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">MDS</a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-line"></div>
+
+  <p class="hero-eyebrow">Est. Excellence</p>
+
+  <img src="MDS_Logo.png" alt="MDS Logo" class="hero-logo-img" />
+
+  <h1 class="hero-title">MDS</h1>
+
+  <p class="hero-subtitle">Marketing &nbsp;·&nbsp; Development &nbsp;·&nbsp; Security</p>
+
+  <div class="hero-divider">
+    <span></span>
+    <div class="hero-divider-icon"></div>
+    <span></span>
+  </div>
+
+  <p class="hero-tagline">
+    Where strategy meets precision — building brands, platforms, and defenses that stand the test of time.
+  </p>
+
+  <a href="#services" class="hero-cta"><span>Discover Our Services</span></a>
+
+  <div class="hero-line"></div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="section-header reveal">
+    <span class="section-tag">What We Do</span>
+    <h2 class="section-title">Our Expertise</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="services-grid">
+    <!-- Marketing -->
+    <div class="service-card reveal">
+      <span class="service-number">01</span>
+      <svg class="service-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 36 L18 20 L28 28 L38 12"/>
+        <circle cx="38" cy="12" r="3" fill="currentColor" stroke="none"/>
+        <path d="M6 42 L42 42"/>
+        <rect x="6" y="30" width="8" height="12" rx="1" fill="currentColor" opacity="0.3" stroke="none"/>
+        <rect x="20" y="22" width="8" height="20" rx="1" fill="currentColor" opacity="0.3" stroke="none"/>
+        <rect x="34" y="14" width="8" height="28" rx="1" fill="currentColor" opacity="0.3" stroke="none"/>
+      </svg>
+      <h3 class="service-name">Marketing</h3>
+      <p class="service-desc">Data-driven campaigns and brand strategies that command attention and cultivate lasting market authority.</p>
+      <ul class="service-items">
+        <li>Brand Identity & Strategy</li>
+        <li>Digital Advertising</li>
+        <li>Content & SEO</li>
+        <li>Social Media Management</li>
+        <li>Analytics & Reporting</li>
+      </ul>
+    </div>
+
+    <!-- Development -->
+    <div class="service-card reveal">
+      <span class="service-number">02</span>
+      <svg class="service-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polyline points="14,18 6,24 14,30"/>
+        <polyline points="34,18 42,24 34,30"/>
+        <line x1="20" y1="34" x2="28" y2="14"/>
+        <rect x="4" y="8" width="40" height="32" rx="3"/>
+        <line x1="4" y1="16" x2="44" y2="16"/>
+        <circle cx="10" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="16" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="22" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <h3 class="service-name">Development</h3>
+      <p class="service-desc">Bespoke digital solutions engineered with precision — from high-performance web platforms to enterprise applications.</p>
+      <ul class="service-items">
+        <li>Web & App Development</li>
+        <li>UI/UX Design</li>
+        <li>API Integrations</li>
+        <li>E-Commerce Solutions</li>
+        <li>Cloud Infrastructure</li>
+      </ul>
+    </div>
+
+    <!-- Security -->
+    <div class="service-card reveal">
+      <span class="service-number">03</span>
+      <svg class="service-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M24 4 L40 10 L40 26 C40 34 32 42 24 44 C16 42 8 34 8 26 L8 10 Z"/>
+        <polyline points="16,24 21,29 32,18"/>
+      </svg>
+      <h3 class="service-name">Security</h3>
+      <p class="service-desc">Comprehensive cybersecurity services that protect your digital assets, reputation, and operations from evolving threats.</p>
+      <ul class="service-items">
+        <li>Penetration Testing</li>
+        <li>Vulnerability Assessment</li>
+        <li>Network Security</li>
+        <li>Compliance & Auditing</li>
+        <li>Incident Response</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="why" id="about">
+  <div class="why-inner">
+    <div class="why-left">
+      <div class="section-header reveal">
+        <span class="section-tag">Why MDS</span>
+        <h2 class="section-title">Built for the<br/>Exceptional Few</h2>
+        <div class="section-rule"></div>
+      </div>
+      <p class="why-body reveal">
+        We don't work with everyone — we work with those who refuse to be ordinary. MDS brings together elite expertise across three disciplines to deliver solutions that are not just effective, but exceptional.
+        <br/><br/>
+        Our integrated approach means your marketing amplifies your platform, your platform is built to be secured, and your security is designed to inspire confidence.
+      </p>
+    </div>
+    <div class="why-stats reveal">
+      <div class="stat-box">
+        <span class="stat-number">200+</span>
+        <span class="stat-label">Projects Delivered</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-number">98%</span>
+        <span class="stat-label">Client Retention</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-number">50+</span>
+        <span class="stat-label">Enterprise Clients</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-number">24/7</span>
+        <span class="stat-label">Security Monitoring</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="reveal">
+    <span class="section-tag">Get in Touch</span>
+    <h2 class="section-title">Begin Your Transformation</h2>
+    <div class="section-rule" style="margin: 0 auto;"></div>
+  </div>
+  <p class="contact-desc reveal">
+    Ready to elevate your brand, build something remarkable, or fortify your defenses? Let's talk.
+  </p>
+  <div class="contact-links reveal">
+    <a href="mailto:hello@mds.com" class="contact-btn contact-btn-primary">Get in Touch</a>
+    <a href="#services" class="contact-btn contact-btn-secondary">View Services</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">MDS</span>
+  <span class="footer-copy">© 2026 MDS — Marketing · Development · Security</span>
+  <ul class="footer-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.transform = `translate(${mx - 4}px, ${my - 4}px)`;
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    ring.style.transform = `translate(${rx - 16}px, ${ry - 16}px)`;
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+
+  document.querySelectorAll('a, button, .service-card, .stat-box').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '52px'; ring.style.height = '52px';
+      ring.style.borderColor = 'rgba(201,168,76,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px'; ring.style.height = '32px';
+      ring.style.borderColor = 'rgba(201,168,76,0.5)';
+    });
+  });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
